@@ -44,7 +44,7 @@ class Simple implements BandInterface
         $testFilePaths = $this->_score->getTestFilePaths();
         $runner = new SimpleRunner($testFilePaths);
         $notifier = new SimpleNotifier();
-        $notifier->setRunnerIterator($runner)
+        $notifier->setRunner($runner)
             ->output();
         $notifier->outputFailureResults();
     }

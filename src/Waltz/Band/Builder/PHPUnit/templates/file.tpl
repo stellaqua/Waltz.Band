@@ -1,0 +1,6 @@
+<?php
+{{prefix}}
+
+{{classes}}
+
+{{suffix}}

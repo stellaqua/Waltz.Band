@@ -17,6 +17,15 @@
     "waltz/score": "0.*",
     "phpunit/phpunit": "3.7.*"
   },
+  "require-dev": {
+    "waltz/stagehand": "0.1.x-dev",
+    "waltz/score": "0.1.x-dev"
+  },
+  "extra": {
+    "branch-alias": {
+      "dev-develop": "0.1.x-dev"
+    }
+  },
   "autoload": {
     "psr-0": {
       "Waltz\\Band": "src/"

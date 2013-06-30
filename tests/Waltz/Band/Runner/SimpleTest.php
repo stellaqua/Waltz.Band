@@ -11,6 +11,7 @@ namespace Waltz\Band\Runner;
 
 use Waltz\Score\Simple as SimpleScore;
 use Waltz\Band\Runner\Simple as SimpleRunner;
+use Waltz\Band\Runner\Simple\SimpleListener;
 
 /**
  * SimpleTest
@@ -34,13 +35,15 @@ class SimpleTest extends \PHPUnit_Framework_TestCase
         $targetPath = $this->_dataDir . '/SimplePhpTestClass.php';
         $score = new SimpleScore($targetPath);
         $runner = new SimpleRunner($score->getTestFilePaths());
-        foreach ($runner as $result) {
-            $this->assertInstanceOf('\PHPUnit_Framework_TestResult', $result);
-            $this->assertSame(1, $result->count());
-            $this->assertSame(0, $result->errorCount());
-            $this->assertSame(0, $result->failureCount());
-            $this->assertSame(0, $result->notImplementedCount());
-            $this->assertTrue($result->wasSuccessful());
+        foreach ($runner as $listener) {
+            $this->assertInstanceOf('Waltz\Band\Runner\Simple\SimpleListener', $listener);
+            foreach ( $listener as $className => $results ) {
+                $this->assertSame('', $className);
+                foreach ( $results as $methodName => $result ) {
+                    $this->assertSame('', $methodName);
+                    $this->assertSame(SimpleListener::RESULT_OK, $result);
+                }
+            }
         }
     }
 }
