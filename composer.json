@@ -3,7 +3,7 @@
   "description": "Waltz.Band is core libraries for Waltz framework",
   "keywords": ["Waltz", "framework", "UnitTest", "TDD"],
   "homepage": "https://github.com/stellaqua/Waltz.Band",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "license": "MIT",
   "authors": [
     {
