@@ -1,0 +1,4 @@
+{{modifier}} function {{methodName}} (  )
+{
+{{methodCode}}
+}

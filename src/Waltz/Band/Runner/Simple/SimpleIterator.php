@@ -10,6 +10,7 @@
 namespace Waltz\Band\Runner\Simple;
 
 use Waltz\Stagehand\FileUtility;
+use Waltz\Band\Runner\Simple\SimpleListener;
 
 /**
  * SimpleIterator
@@ -22,48 +23,51 @@ class SimpleIterator implements \Iterator
     /**
      * Target file paths
      *
-     * @var array
+     * @var Iterator
      */
-    private $_targetFilePaths = array();
+    private $_targetFilePaths;
 
     /**
      * Constructor
      *
-     * @param array $targetFilePaths
+     * @param Iterator $targetFilePaths
      */
-    public function __construct ( array $targetFilePaths ) {
+    public function __construct ( \Iterator $targetFilePaths ) {
         $this->_targetFilePaths = $targetFilePaths;
     }
 
     public function rewind ( ) {
-        reset($this->_targetFilePaths);
+        $this->_targetFilePaths->rewind();
     }
 
     public function key ( ) {
-        return key($this->_targetFilePaths);
+        return $this->_targetFilePaths->key();
     }
 
     public function current ( ) {
         $suite = new \PHPUnit_Framework_TestSuite();
-        $filePath = current($this->_targetFilePaths);
+        $filePath = $this->_targetFilePaths->current();
         require_once $filePath;
 
         $fileObjects = FileUtility::listPhpClassFileObjects($filePath);
-        foreach ($fileObjects as $fileObject) {
+        foreach ( $fileObjects as $fileObject ) {
             $classNames = $fileObject->getClassNames();
-            foreach ($classNames as $className) {
+            foreach ( $classNames as $className ) {
                 $suite->addTestSuite($className);
             }
         }
-        $result = $suite->run();
-        return $result;
+        $result = new \PHPUnit_Framework_TestResult();
+        $listener = new SimpleListener($result);
+        $result->addListener($listener);
+        $suite->run($result);
+        return $listener;
     }
 
     public function next ( ) {
-        next($this->_targetFilePaths);
+        $this->_targetFilePaths->next();
     }
 
     public function valid ( ) {
-        return !is_null($this->key());
+        return $this->_targetFilePaths->valid();
     }
 }
