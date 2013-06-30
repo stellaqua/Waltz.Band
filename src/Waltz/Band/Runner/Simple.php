@@ -11,6 +11,7 @@ namespace Waltz\Band\Runner;
 
 use Waltz\Band\Runner\RunnerInterface;
 use Waltz\Band\Runner\Simple\SimpleIterator;
+use Waltz\Band\Builder\BuilderInterface;
 
 /**
  * Simple
@@ -29,12 +30,29 @@ class Simple implements RunnerInterface, \IteratorAggregate
     private $_targetFilePaths = array();
 
     /**
+     * Builder instance
+     *
+     * @var BuilderInterface
+     */
+    private $_builder = null;
+
+    /**
      * Constructor
      *
      * @param array $targetFilePaths
      */
-    public function __construct ( array $targetFilePaths ) {
+    public function __construct ( array $targetFilePaths = array() ) {
         $this->_targetFilePaths = $targetFilePaths;
+    }
+
+    /**
+     * Set builder instance
+     *
+     * @param BuilderInterface $builder
+     */
+    public function setBuilder ( BuilderInterface $builder )
+    {
+        $this->_builder = $builder;
     }
 
     /**
@@ -43,7 +61,12 @@ class Simple implements RunnerInterface, \IteratorAggregate
      * @return SimpleIterator
      */
     public function getIterator ( ) {
-        $iterator = new SimpleIterator($this->_targetFilePaths);
+        if ( is_null($this->_builder) === true ) {
+            $target = new \ArrayIterator($this->_targetFilePaths);
+        } else {
+            $target = $this->_builder->getIterator();
+        }
+        $iterator = new SimpleIterator($target);
         return $iterator;
     }
 }

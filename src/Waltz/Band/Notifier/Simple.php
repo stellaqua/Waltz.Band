@@ -11,6 +11,7 @@ namespace Waltz\Band\Notifier;
 
 use Waltz\Band\Notifier\NotifierInterface;
 use Waltz\Band\Runner\RunnerInterface;
+use Waltz\Band\Runner\Simple\SimpleListener;
 use Waltz\Stagehand\CuiUtility;
 
 class Simple implements NotifierInterface
@@ -23,12 +24,12 @@ class Simple implements NotifierInterface
     private $_runner;
 
     /**
-     * Set runner iterator
+     * Set runner
      *
      * @param RunnerInterface $runner Runner instance
      * @return Simple Self instance
      */
-    public function setRunnerIterator ( RunnerInterface $runner ) {
+    public function setRunner ( RunnerInterface $runner ) {
         $this->_runner = $runner;
         return $this;
     }
@@ -47,30 +48,32 @@ class Simple implements NotifierInterface
         $ngBlock = $this->_getNgBlock();
         $cuiUtility->setCanvas(count($beginningBlock))
             ->drawByBlock($beginningBlock);
-        $totalCount = iterator_count($this->_runner);
+        $totalCount = 0;
+        $this->_runner->getIterator()->rewind();
+        foreach ( $this->_runner as $key => $listener ) {
+            $totalCount += $listener->getResultsCount();
+        }
         $drawCount = 0;
         $this->_runner->getIterator()->rewind();
-        foreach ( $this->_runner as $key => $result ) {
-            $testCount = $result->count();
-            $errorCount = $result->errorCount();
-            $failureCount = $result->failureCount();
-            $skippedCount = $result->skippedCount();
-            if ( $errorCount === 0
-                 && $failureCount === 0
-                 && $skippedCount === 0) {
-                $cuiUtility->drawByBlock($okBlock);
-            } else {
-                $cuiUtility->drawByBlock($ngBlock);
-            }
-            $drawCount++;
-            if ( $drawCount % 3 === 0 && $drawCount < $totalCount ) {
-                $cuiUtility->drawByBlock($delimiterBlock);
-                $canvasSize = $cuiUtility->getCanvasSize();
-                $windowSize = CuiUtility::getWindowSize();
-                if ( $canvasSize[0] + 18 >= $windowSize[0] ) {
-                    $cuiUtility->finishDrawingByBlock()
-                        ->setCanvas(count($delimiterBlock))
-                        ->drawByBlock($delimiterBlock);
+        foreach ( $this->_runner as $key => $listener ) {
+            foreach ( $listener->getResults() as $className => $results ) {
+                foreach ( $results as $methodName => $result ) {
+                    if ( $result === SimpleListener::RESULT_OK ) {
+                        $cuiUtility->drawByBlock($okBlock);
+                    } else {
+                        $cuiUtility->drawByBlock($ngBlock);
+                    }
+                    $drawCount++;
+                    if ( $drawCount % 3 === 0 && $drawCount < $totalCount ) {
+                        $cuiUtility->drawByBlock($delimiterBlock);
+                        $canvasSize = $cuiUtility->getCanvasSize();
+                        $windowSize = CuiUtility::getWindowSize();
+                        if ( $canvasSize[0] + 18 >= $windowSize[0] ) {
+                            $cuiUtility->finishDrawingByBlock()
+                                ->setCanvas(count($delimiterBlock))
+                                ->drawByBlock($delimiterBlock);
+                        }
+                    }
                 }
             }
         }
@@ -86,16 +89,18 @@ class Simple implements NotifierInterface
      */
     public function outputFailureResults ( ) {
         $this->_runner->getIterator()->rewind();
-        foreach ( $this->_runner as $key => $result ) {
-            $testCount = $result->count();
-            $errorCount = $result->errorCount();
-            $failureCount = $result->failureCount();
-            $skippedCount = $result->skippedCount();
-            if ( $errorCount > 0
-                 || $failureCount > 0
-                 || $skippedCount > 0) {
+        foreach ( $this->_runner as $key => $listener ) {
+            $isOk = true;
+            foreach ( $listener->getResults() as $className => $results ) {
+                foreach ( $results as $methodName => $result ) {
+                    if ( $result !== SimpleListener::RESULT_OK ) {
+                        $isOk = false;
+                    }
+                }
+            }
+            if ( $isOk === false ) {
                 $printer = new \PHPUnit_TextUI_ResultPrinter(null, true, true);
-                $printer->printResult($result);
+                $printer->printResult($listener->getResultInstance());
             }
         }
         return $this;
