@@ -234,8 +234,9 @@ class PHPUnit
         }
         if ( $this->_setUpCodes[$className] === '' && in_array($className, self::getClassNames()) === true) {
             $targetPath = $this->getTargetPath();
+            $defaultSetUpCode = "require_once '{$targetPath}';\n";
             list($namespace, $classNameWithoutNamespace) = \Waltz\Stagehand\ClassUtility::splitClassName($className);
-            $defaultSetUpCode = '$this->_target = new ' . $classNameWithoutNamespace . '();' . "\n";
+            $defaultSetUpCode .= '$this->_target = new ' . $classNameWithoutNamespace . '();' . "\n";
             $this->_setUpCodes[$className] = $defaultSetUpCode;
         }
 
